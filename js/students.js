@@ -7,7 +7,9 @@ $('nav').onclick = e => {
   [...$('nav').children].forEach(x => x.setAttribute('aria-pressed', x === b));
   $('v-sesi').hidden = b.dataset.v !== 'sesi';
   $('v-siswa').hidden = b.dataset.v !== 'siswa';
+  $('v-jadwal').hidden = b.dataset.v !== 'jadwal';
   if (b.dataset.v === 'siswa') loadStudents();
+  if (b.dataset.v === 'jadwal') loadSchedules();
 };
 
 async function loadStudents() {
