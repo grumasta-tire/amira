@@ -23,7 +23,7 @@
     <div><b>Jadwal Les</b><small id="who"></small></div>
     <button id="out">Keluar</button>
   </header>
-  <nav style="max-width:688px;margin:1rem auto 0" class="tabs" id="nav"><button data-v="sesi" aria-pressed="true">Sesi</button><button data-v="siswa" id="nav-siswa" aria-pressed="false" hidden>Siswa</button><button data-v="jadwal" id="nav-jadwal" aria-pressed="false" hidden>Jadwal</button><button data-v="bayar" id="nav-bayar" aria-pressed="false" hidden>Bayar</button></nav>
+  <nav style="max-width:688px;margin:1rem auto 0" class="tabs" id="nav"><button data-v="sesi" aria-pressed="true">Sesi</button><button data-v="siswa" id="nav-siswa" aria-pressed="false" hidden>Siswa</button><button data-v="jadwal" id="nav-jadwal" aria-pressed="false" hidden>Jadwal</button><button data-v="bayar" id="nav-bayar" aria-pressed="false" hidden>Bayar</button><button data-v="laporan" id="nav-laporan" aria-pressed="false" hidden>Laporan</button></nav>
   <div class="wrap">
    <section id="v-sesi">
     <div class="tabs" id="tabs">
@@ -45,6 +45,11 @@
     <div class="bar"><h2 style="margin:0">Pembayaran</h2><input id="bmonth" type="month" style="width:auto"></div>
     <div id="bsum" class="sumr"></div>
     <div id="blist"></div>
+   </section>
+   <section id="v-laporan" hidden>
+    <div class="bar"><h2 style="margin:0">Laporan 12 bulan</h2><button class="pri" id="rcsv">Unduh CSV</button></div>
+    <div id="rsum" class="sumr"></div>
+    <div id="rlist"></div>
    </section>
   </div>
 </div>
@@ -119,6 +124,7 @@
 <script src="js/students.js"></script>
 <script src="js/schedules.js"></script>
 <script src="js/payments.js"></script>
+<script src="js/report.js"></script>
 <script src="js/auth.js"></script>
 </body>
 </html>

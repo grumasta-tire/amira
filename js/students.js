@@ -9,9 +9,11 @@ $('nav').onclick = e => {
   $('v-siswa').hidden = b.dataset.v !== 'siswa';
   $('v-jadwal').hidden = b.dataset.v !== 'jadwal';
   $('v-bayar').hidden = b.dataset.v !== 'bayar';
+  $('v-laporan').hidden = b.dataset.v !== 'laporan';
   if (b.dataset.v === 'siswa') loadStudents();
   if (b.dataset.v === 'jadwal') loadSchedules();
   if (b.dataset.v === 'bayar') loadPayments();
+  if (b.dataset.v === 'laporan') loadReport();
 };
 
 async function loadStudents() {

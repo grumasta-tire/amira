@@ -5,7 +5,7 @@ async function enter() {
   const { data: { user } } = await sb.auth.getUser();
   const { data: p } = await sb.from('profiles').select('full_name,role').eq('id', user.id).single();
   if (p) $('who').textContent = `${p.full_name || ''} (${p.role})`;
-  $('nav-siswa').hidden = $('nav-jadwal').hidden = $('nav-bayar').hidden = !(p && p.role === 'admin');
+  $('nav-siswa').hidden = $('nav-jadwal').hidden = $('nav-bayar').hidden = $('nav-laporan').hidden = !(p && p.role === 'admin');
   load();
 }
 function leave() { $('app').hidden = true; $('login').hidden = false; $('nav').firstElementChild.click(); }
