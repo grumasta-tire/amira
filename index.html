@@ -90,7 +90,7 @@ dialog h3{margin:0 0 .2rem}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script>
 // === ISI DUA BARIS INI (Supabase: Project Settings > API). Jangan pakai service_role key. ===
-const SUPABASE_URL = 'https://pdsngavlaykgcnrsqxqi.supabase.co/rest/v1/';
+const SUPABASE_URL = 'https://pdsngavlaykgcnrsqxqi.supabase.co/';
 const SUPABASE_KEY = 'sb_publishable_yc0aNwXH3t0hISH-VCGbnQ_xOt_syJn';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -210,7 +210,7 @@ $('lf').onsubmit = async e => {
   e.preventDefault();
   $('lerr').textContent = '';
   const { error } = await sb.auth.signInWithPassword({ email: $('em').value.trim(), password: $('pw').value });
-  if (error) { $('lerr').textContent = 'Email atau password salah.'; return; }
+  if (error) { $('lerr').textContent = 'Gagal masuk: ' + error.message; return; }
   $('pw').value = '';
   enter();
 };
