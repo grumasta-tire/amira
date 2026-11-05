@@ -23,7 +23,7 @@
     <div><b>Jadwal Les</b><small id="who"></small></div>
     <button id="out">Keluar</button>
   </header>
-  <nav style="max-width:688px;margin:1rem auto 0" class="tabs" id="nav"><button data-v="sesi" aria-pressed="true">Sesi</button><button data-v="siswa" id="nav-siswa" aria-pressed="false" hidden>Siswa</button><button data-v="jadwal" id="nav-jadwal" aria-pressed="false" hidden>Jadwal</button></nav>
+  <nav style="max-width:688px;margin:1rem auto 0" class="tabs" id="nav"><button data-v="sesi" aria-pressed="true">Sesi</button><button data-v="siswa" id="nav-siswa" aria-pressed="false" hidden>Siswa</button><button data-v="jadwal" id="nav-jadwal" aria-pressed="false" hidden>Jadwal</button><button data-v="bayar" id="nav-bayar" aria-pressed="false" hidden>Bayar</button></nav>
   <div class="wrap">
    <section id="v-sesi">
     <div class="tabs" id="tabs">
@@ -40,6 +40,11 @@
    <section id="v-jadwal" hidden>
     <div class="bar"><h2 style="margin:0">Jadwal mingguan</h2><button class="pri" id="jadd">Tambah jadwal</button></div>
     <div id="jlist"></div>
+   </section>
+   <section id="v-bayar" hidden>
+    <div class="bar"><h2 style="margin:0">Pembayaran</h2><input id="bmonth" type="month" style="width:auto"></div>
+    <div id="bsum" class="sumr"></div>
+    <div id="blist"></div>
    </section>
   </div>
 </div>
@@ -94,12 +99,26 @@
   </form>
 </dialog>
 
+<dialog id="bdlg">
+  <form id="bform">
+    <h3 id="bd-title"></h3>
+    <p id="binfo" style="margin:0;color:var(--mute)"></p>
+    <label for="bamt">Jumlah dibayar (Rp)</label><input id="bamt" type="number" min="1" step="1000" inputmode="numeric" required>
+    <label for="bdate">Tanggal bayar</label><input id="bdate" type="date" required>
+    <label for="bnote">Catatan</label><input id="bnote">
+    <p id="berr" class="err" role="alert"></p>
+    <div class="act"><button type="button" id="bcancel">Tutup</button><button class="pri">Catat pembayaran</button></div>
+    <div id="bhist"></div>
+  </form>
+</dialog>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/core.js"></script>
 <script src="js/sessions.js"></script>
 <script src="js/students.js"></script>
 <script src="js/schedules.js"></script>
+<script src="js/payments.js"></script>
 <script src="js/auth.js"></script>
 </body>
 </html>
