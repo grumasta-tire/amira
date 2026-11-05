@@ -1,0 +1,222 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jadwal Les</title>
+<style>
+:root{--bg:#f2f5f7;--card:#fff;--ink:#17262e;--mute:#62747e;--line:#d9e1e6;--acc:#0e6b63;--acc-ink:#fff;
+--terjadwal:#1d4ed8;--selesai:#15803d;--batal:#b91c1c;--pindah:#b45309}
+@media(prefers-color-scheme:dark){:root{--bg:#10191e;--card:#18242b;--ink:#e6eef2;--mute:#93a5ae;--line:#2a3a43;--acc:#3cc4b6;--acc-ink:#07201d;
+--terjadwal:#7aa2ff;--selesai:#4ade80;--batal:#f87171;--pindah:#fbbf24}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+[hidden]{display:none!important}
+button,input,select,textarea{font:inherit;color:inherit}
+input,select,textarea{width:100%;padding:.6rem .7rem;border:1px solid var(--line);border-radius:6px;background:var(--card)}
+label{display:block;font-size:.85rem;color:var(--mute);margin:.8rem 0 .25rem}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);padding:.55rem .9rem;border-radius:6px}
+button.pri{background:var(--acc);color:var(--acc-ink);border-color:var(--acc);font-weight:600}
+:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+.msg{padding:2rem 1rem;text-align:center;color:var(--mute)}.err{color:var(--batal)}
+#login{max-width:360px;margin:12vh auto;padding:0 1.25rem}
+#login h1{font-size:1.6rem;margin:0 0 1.2rem}
+#login button{width:100%;margin-top:1.2rem}
+header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:.8rem 1rem;background:var(--card);border-bottom:1px solid var(--line)}
+header b{font-size:1.1rem}header small{display:block;color:var(--mute)}
+.wrap{max-width:720px;margin:0 auto;padding:0 1rem 3rem}
+.tabs{display:flex;margin:1rem 0;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.tabs button{flex:1;border:0;border-radius:0;background:var(--card)}
+.tabs button[aria-pressed=true]{background:var(--acc);color:var(--acc-ink);font-weight:600}
+h2{font-size:.95rem;margin:1.4rem 0 .4rem;color:var(--mute);font-weight:600}
+.row{display:grid;grid-template-columns:3.6rem 1fr auto;align-items:center;gap:.75rem;width:100%;text-align:left;
+background:var(--card);border:1px solid var(--line);border-radius:8px;padding:.7rem .8rem;margin-bottom:.4rem}
+.row .t{font-weight:700;font-variant-numeric:tabular-nums}
+.row .n{font-weight:600}.row .s{display:block;font-size:.85rem;color:var(--mute)}
+.tag{font-size:.8rem;font-weight:600;padding:.15rem .55rem;border-radius:99px;border:1px solid currentColor}
+.terjadwal{color:var(--terjadwal)}.selesai{color:var(--selesai)}.batal{color:var(--batal)}.pindah{color:var(--pindah)}
+dialog{border:1px solid var(--line);border-radius:10px;background:var(--card);color:var(--ink);width:min(440px,92vw);padding:1.1rem 1.2rem}
+dialog::backdrop{background:rgba(0,0,0,.45)}
+dialog h3{margin:0 0 .2rem}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.chk{display:flex;gap:.5rem;align-items:center;margin-top:.9rem;color:var(--ink);font-size:.9rem}.chk input{width:auto}
+.act{display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.1rem}
+</style>
+</head>
+<body>
+
+<main id="login" hidden>
+  <h1>Jadwal Les</h1>
+  <form id="lf">
+    <label for="em">Email</label><input id="em" type="email" autocomplete="username" required>
+    <label for="pw">Password</label><input id="pw" type="password" autocomplete="current-password" required>
+    <p id="lerr" class="err" role="alert"></p>
+    <button class="pri">Masuk</button>
+  </form>
+</main>
+
+<div id="app" hidden>
+  <header>
+    <div><b>Jadwal Les</b><small id="who"></small></div>
+    <button id="out">Keluar</button>
+  </header>
+  <div class="wrap">
+    <div class="tabs" id="tabs">
+      <button data-f="today" aria-pressed="false">Hari ini</button>
+      <button data-f="week" aria-pressed="true">Minggu ini</button>
+      <button data-f="month" aria-pressed="false">Bulan ini</button>
+    </div>
+    <div id="list"></div>
+  </div>
+</div>
+
+<dialog id="dlg">
+  <form id="f">
+    <h3 id="dname"></h3>
+    <label for="dt">Tanggal</label><input id="dt" type="date" required>
+    <div class="two">
+      <div><label for="st">Mulai</label><input id="st" type="time"></div>
+      <div><label for="en">Selesai</label><input id="en" type="time"></div>
+    </div>
+    <label for="sts">Status</label>
+    <select id="sts"><option value="terjadwal">Terjadwal</option><option value="batal">Batal</option><option value="pindah">Pindah</option></select>
+    <label for="nt">Catatan</label><input id="nt">
+    <label class="chk" id="futl"><input type="checkbox" id="fut">Terapkan jam ini ke sesi berikutnya</label>
+    <p id="derr" class="err" role="alert"></p>
+    <div class="act"><button type="button" id="cancel">Batal</button><button class="pri">Simpan</button></div>
+  </form>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+// === ISI DUA BARIS INI (Supabase: Project Settings > API). Jangan pakai service_role key. ===
+const SUPABASE_URL = 'https://pdsngavlaykgcnrsqxqi.supabase.co/rest/v1/';
+const SUPABASE_KEY = 'sb_publishable_yc0aNwXH3t0hISH-VCGbnQ_xOt_syJn';
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2, '0');
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const dayFmt = new Intl.DateTimeFormat('id-ID', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+let filter = 'week', rows = [], cur = null;
+
+function range() {
+  const n = new Date(), t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  if (filter === 'today') return [t, t];
+  if (filter === 'week') {
+    const m = new Date(t); m.setDate(t.getDate() - ((t.getDay() + 6) % 7));
+    const e = new Date(m); e.setDate(m.getDate() + 6);
+    return [m, e];
+  }
+  return [new Date(t.getFullYear(), t.getMonth(), 1), new Date(t.getFullYear(), t.getMonth() + 1, 0)];
+}
+
+// Sesi 'terjadwal' yang tanggalnya sudah lewat dianggap selesai.
+function label(s) {
+  if (s.status === 'batal') return ['Batal', 'batal'];
+  if (s.status === 'pindah') return ['Pindah', 'pindah'];
+  return s.session_date < ymd(new Date()) ? ['Selesai', 'selesai'] : ['Terjadwal', 'terjadwal'];
+}
+
+async function load() {
+  const [a, b] = range();
+  $('list').innerHTML = '<p class="msg">Memuat…</p>';
+  const { data, error } = await sb.from('sessions')
+    .select('id,schedule_id,session_date,start_time,end_time,status,notes,students(name),schedules(subject,location)')
+    .gte('session_date', ymd(a)).lte('session_date', ymd(b))
+    .order('session_date').order('start_time');
+  if (error) { $('list').innerHTML = `<p class="msg err">Gagal memuat: ${esc(error.message)}</p>`; return; }
+  rows = data;
+  render();
+}
+
+function render() {
+  if (!rows.length) { $('list').innerHTML = '<p class="msg">Tidak ada sesi pada rentang ini.</p>'; return; }
+  let html = '', last = '';
+  rows.forEach((s, i) => {
+    if (s.session_date !== last) {
+      last = s.session_date;
+      html += `<h2>${dayFmt.format(new Date(s.session_date + 'T00:00:00'))}</h2>`;
+    }
+    const [txt, cls] = label(s);
+    const sub = [s.schedules?.subject, s.schedules?.location].filter(Boolean).join(', ');
+    html += `<button class="row" data-i="${i}">
+      <span class="t">${s.start_time ? s.start_time.slice(0, 5) : '--:--'}</span>
+      <span><span class="n">${esc(s.students?.name || '-')}</span>${sub ? `<span class="s">${esc(sub)}</span>` : ''}</span>
+      <span class="tag ${cls}">${txt}</span></button>`;
+  });
+  $('list').innerHTML = html;
+}
+
+$('list').onclick = e => {
+  const b = e.target.closest('.row'); if (!b) return;
+  cur = rows[+b.dataset.i];
+  $('dname').textContent = cur.students?.name || '-';
+  $('dt').value = cur.session_date;
+  $('st').value = cur.start_time ? cur.start_time.slice(0, 5) : '';
+  $('en').value = cur.end_time ? cur.end_time.slice(0, 5) : '';
+  $('sts').value = cur.status;
+  $('nt').value = cur.notes || '';
+  $('fut').checked = false;
+  $('futl').hidden = !cur.schedule_id;
+  $('derr').textContent = '';
+  $('dlg').showModal();
+};
+$('cancel').onclick = () => $('dlg').close();
+
+$('f').onsubmit = async e => {
+  e.preventDefault();
+  const st = $('st').value || null, en = $('en').value || null;
+  let r = await sb.from('sessions').update({
+    session_date: $('dt').value, start_time: st, end_time: en,
+    status: $('sts').value, notes: $('nt').value.trim() || null, is_modified: true
+  }).eq('id', cur.id);
+  // Terapkan ke jadwal induk dan sesi berikutnya yang belum pernah diubah manual.
+  if (!r.error && $('fut').checked && cur.schedule_id) {
+    r = await sb.from('schedules').update({ start_time: st, end_time: en }).eq('id', cur.schedule_id);
+    if (!r.error) r = await sb.from('sessions').update({ start_time: st, end_time: en })
+      .eq('schedule_id', cur.schedule_id).eq('is_modified', false)
+      .eq('status', 'terjadwal').gt('session_date', cur.session_date);
+  }
+  if (r.error) {
+    $('derr').textContent = r.error.code === '23505'
+      ? 'Sudah ada sesi lain pada tanggal itu.' : 'Gagal menyimpan: ' + r.error.message;
+    return;
+  }
+  $('dlg').close();
+  load();
+};
+
+$('tabs').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  filter = b.dataset.f;
+  [...$('tabs').children].forEach(x => x.setAttribute('aria-pressed', x === b));
+  load();
+};
+
+// --- Login / sesi ---
+async function enter() {
+  $('login').hidden = true; $('app').hidden = false;
+  await sb.rpc('generate_sessions', { days_ahead: 30 }); // buat sesi otomatis 30 hari ke depan
+  const { data: { user } } = await sb.auth.getUser();
+  const { data: p } = await sb.from('profiles').select('full_name,role').eq('id', user.id).single();
+  if (p) $('who').textContent = `${p.full_name || ''} (${p.role})`;
+  load();
+}
+function leave() { $('app').hidden = true; $('login').hidden = false; }
+
+$('lf').onsubmit = async e => {
+  e.preventDefault();
+  $('lerr').textContent = '';
+  const { error } = await sb.auth.signInWithPassword({ email: $('em').value.trim(), password: $('pw').value });
+  if (error) { $('lerr').textContent = 'Email atau password salah.'; return; }
+  $('pw').value = '';
+  enter();
+};
+$('out').onclick = async () => { await sb.auth.signOut(); leave(); };
+
+sb.auth.getSession().then(({ data: { session } }) => session ? enter() : leave());
+</script>
+</body>
+</html>
