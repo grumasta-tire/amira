@@ -22,9 +22,9 @@ async function loadPayments() {
   $('bsum').innerHTML = `<span>Tagihan<b>${sum('monthly_fee')}</b></span><span>Terbayar<b>${sum('total_paid')}</b></span><span>Sisa<b>${sum('remaining')}</b></span>`;
   $('blist').innerHTML = bills.map((b, i) => {
     const [t, c] = BSTAT[b.status];
-    return `<button class="row srow" data-i="${i}">
+    return `<div class="bw"><button class="row srow" data-i="${i}">
       <span><span class="n">${esc(b.student_name)}</span><span class="s">Biaya ${rp.format(b.monthly_fee)}, terbayar ${rp.format(b.total_paid)}</span></span>
-      <span class="t">${b.remaining > 0 ? 'Sisa ' + rp.format(b.remaining) : ''}</span><span class="tag ${c}">${t}</span></button>`;
+      <span class="t">${b.remaining > 0 ? 'Sisa ' + rp.format(b.remaining) : ''}</span><span class="tag ${c}">${t}</span></button>${b.remaining > 0 ? `<button class="pri lun" data-i="${i}">Lunasi</button>` : ''}</div>`;
   }).join('');
 }
 
@@ -49,7 +49,21 @@ function openBill(b) {
   loadHist();
 }
 $('bmonth').onchange = loadPayments;
-$('blist').onclick = e => { const b = e.target.closest('.row'); if (b) openBill(bills[+b.dataset.i]); };
+// Tombol "Lunasi": langsung mencatat pembayaran sebesar sisa tagihan (hari ini), setelah konfirmasi.
+async function lunasi(b) {
+  const sisa = Number(b.remaining);
+  if (!confirm(`Lunasi ${b.student_name} sebesar ${rp.format(sisa)} untuk ${bLabel()}?`)) return;
+  const { error } = await sb.from('payments').insert({ student_id: b.student_id, month: bMonth(),
+    amount: sisa, paid_date: ymd(new Date()), notes: 'Pelunasan' });
+  if (error) { alert('Gagal mencatat: ' + error.message); return; }
+  loadPayments();
+}
+$('blist').onclick = e => {
+  const l = e.target.closest('.lun');
+  if (l) return lunasi(bills[+l.dataset.i]);
+  const b = e.target.closest('.row');
+  if (b) openBill(bills[+b.dataset.i]);
+};
 $('bcancel').onclick = () => $('bdlg').close();
 
 $('bform').onsubmit = async e => {
