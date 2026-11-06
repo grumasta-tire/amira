@@ -98,17 +98,17 @@
   <form id="jform">
     <h3 id="jd-title"></h3>
     <label for="jsd">Siswa</label><select id="jsd" required></select>
-    <label for="jsub">Mata pelajaran</label><input id="jsub" required>
+    <label for="jreg">Tanggal daftar</label><input id="jreg" type="date" required>
+    <label for="jsub">Mata pelajaran</label><select id="jsub" required></select>
     <label for="jday">Hari</label>
     <select id="jday"><option value="1">Senin</option><option value="2">Selasa</option><option value="3">Rabu</option><option value="4">Kamis</option><option value="5">Jumat</option><option value="6">Sabtu</option><option value="7">Minggu</option></select>
     <div class="two">
       <div><label for="jst">Mulai</label><input id="jst" type="time"></div>
       <div><label for="jen">Selesai</label><input id="jen" type="time"></div>
     </div>
-    <label for="jloc">Lokasi</label><input id="jloc">
+    <label for="jloc">Lokasi Les</label><select id="jloc" required></select>
     <label class="chk"><input type="checkbox" id="jact">Jadwal aktif (sesi dibuat otomatis)</label>
     <p id="jhint" style="font-size:.85rem;color:var(--mute)" hidden>Sesi mendatang yang belum pernah kamu ubah manual akan dibuat ulang sesuai jadwal ini.</p>
-    <p style="font-size:.85rem;color:var(--mute)">Sesi dibatasi kuota paket siswa tiap bulan (Reguler 4x, Promo 8x). Idealnya Reguler 1 jadwal per minggu, Promo 2 jadwal per minggu.</p>
     <p id="jerr" class="err" role="alert"></p>
     <div class="act"><button type="button" id="jcancel">Batal</button><button class="pri">Simpan</button></div>
   </form>

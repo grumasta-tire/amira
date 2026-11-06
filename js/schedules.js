@@ -1,11 +1,25 @@
 // Halaman Jadwal (khusus admin): jadwal mingguan berulang per siswa
 const HARI = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
 let jads = [], jCur = null;
+const MAPEL = ['Bahasa Inggris I', 'Bahasa Inggris II', 'Bahasa Inggris III', 'Matematika I', 'Matematika II', 'Matematika III', 'Bahasa Arab', 'CaLisTung'];
+const LOKASI = ['Teacher Visit', 'Home Visit'];
+// Isi pilihan; nilai lama yang tidak ada di daftar tetap dipertahankan agar tidak hilang.
+function fillSel(id, list, cur, ph) {
+  const l = cur && !list.includes(cur) ? [...list, cur] : list;
+  $(id).innerHTML = `<option value="">${ph}</option>` + l.map(v => `<option>${esc(v)}</option>`).join('');
+  $(id).value = cur || '';
+}
+// Siswa baru di jadwal: tanggal daftar terisi dari jadwal siswa itu yang sudah ada.
+function prefillReg() {
+  if (jCur) return;
+  $('jreg').value = jads.filter(x => x.student_id === $('jsd').value).map(x => x.start_date).sort()[0] || '';
+}
+$('jsd').onchange = prefillReg;
 
 async function loadSchedules() {
   $('jlist').innerHTML = '<p class="msg">Memuat…</p>';
   const { data, error } = await sb.from('schedules')
-    .select('id,student_id,subject,day_of_week,start_time,end_time,location,is_active,students(name)')
+    .select('id,student_id,subject,day_of_week,start_time,end_time,location,is_active,start_date,students(name)')
     .order('day_of_week').order('start_time');
   if (error) { $('jlist').innerHTML = `<p class="msg err">Gagal memuat: ${esc(error.message)}</p>`; return; }
   jads = data;
@@ -31,11 +45,13 @@ async function openSchedule(j) {
     .map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
   if (j) $('jsd').value = j.student_id;
   $('jsd').disabled = !!j;
-  $('jsub').value = j?.subject || '';
+  fillSel('jsub', MAPEL, j?.subject, 'Pilih mata pelajaran');
+  $('jreg').value = j?.start_date || '';
+  prefillReg();
   $('jday').value = j?.day_of_week || 1;
   $('jst').value = j?.start_time ? j.start_time.slice(0, 5) : '';
   $('jen').value = j?.end_time ? j.end_time.slice(0, 5) : '';
-  $('jloc').value = j?.location || '';
+  fillSel('jloc', LOKASI, j?.location, 'Pilih lokasi');
   $('jact').checked = j ? j.is_active : true;
   $('jhint').hidden = !j;
   $('jdlg').showModal();
@@ -46,8 +62,8 @@ $('jcancel').onclick = () => $('jdlg').close();
 
 $('jform').onsubmit = async e => {
   e.preventDefault();
-  const row = { subject: $('jsub').value.trim(), day_of_week: +$('jday').value, start_time: $('jst').value || null,
-                end_time: $('jen').value || null, location: $('jloc').value.trim() || null, is_active: $('jact').checked };
+  const row = { subject: $('jsub').value, start_date: $('jreg').value, day_of_week: +$('jday').value, start_time: $('jst').value || null,
+                end_time: $('jen').value || null, location: $('jloc').value || null, is_active: $('jact').checked };
   let r;
   if (jCur) r = await sb.from('schedules').update(row).eq('id', jCur.id);
   else r = await sb.from('schedules').insert({ ...row, student_id: $('jsd').value });
