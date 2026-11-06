@@ -44,3 +44,5 @@ dialog h3{margin:0 0 .2rem}
 #nav button{padding:.55rem .25rem;font-size:.9rem}
 .rrow{grid-template-columns:1fr auto;gap:.3rem .75rem}.rrow .s,.pbar{grid-column:1/-1}
 .pbar{height:6px;background:var(--line);border-radius:3px;overflow:hidden}.pbar i{display:block;height:100%;background:var(--acc)}
+button.danger{color:var(--batal);border-color:var(--batal);font-weight:600}button:disabled{opacity:.5;cursor:not-allowed}
+#sdel{margin-top:1.2rem;border-top:1px solid var(--line)}

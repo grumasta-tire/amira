@@ -82,6 +82,15 @@
     <label class="chk"><input type="checkbox" id="sa">Siswa aktif (sesi dibuat otomatis)</label>
     <p id="serr" class="err" role="alert"></p>
     <div class="act"><button type="button" id="scancel">Batal</button><button class="pri">Simpan</button></div>
+    <div id="sdel" hidden>
+      <h2>Hapus siswa</h2>
+      <p id="sdinfo" style="font-size:.9rem;margin:.2rem 0"></p>
+      <div id="sdform" hidden>
+        <label for="sdname">Ketik nama siswa untuk konfirmasi</label>
+        <input id="sdname" autocomplete="off">
+        <button type="button" id="sdbtn" class="danger" style="margin-top:.7rem" disabled>Hapus permanen</button>
+      </div>
+    </div>
   </form>
 </dialog>
 
