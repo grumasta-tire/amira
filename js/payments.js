@@ -59,7 +59,7 @@ function openBill(b) {
   bCur = b;
   $('bd-title').textContent = b.name;
   $('binfo').textContent = `${bLabel()}, biaya bulanan ${rp.format(b.fee)}`;
-  $('bamt').value = b.paid === 0 && b.fee > 0 ? b.fee : '';
+  $('bamt').value = '';
   $('bdate').value = ymd(new Date());
   $('bnote').value = '';
   $('berr').textContent = '';
