@@ -81,6 +81,7 @@ $('f').onsubmit = async e => {
       ? 'Sudah ada sesi lain pada tanggal itu.' : 'Gagal menyimpan: ' + r.error.message;
     return;
   }
+  await sb.rpc('generate_sessions', { days_ahead: 30 }); // sesi batal diganti sesi pengganti
   $('dlg').close();
   load();
 };

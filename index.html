@@ -77,7 +77,7 @@
     <label for="sn">Nama</label><input id="sn" required>
     <label for="sc">Kontak</label><input id="sc">
     <label for="sg">Kelas</label><input id="sg">
-    <label for="sf">Biaya bulanan (Rp)</label><input id="sf" type="number" min="0" step="1000" inputmode="numeric">
+    <label for="sf">Paket</label><select id="sf"></select>
     <label for="sx">Catatan</label><input id="sx">
     <label class="chk"><input type="checkbox" id="sa">Siswa aktif (sesi dibuat otomatis)</label>
     <p id="serr" class="err" role="alert"></p>
@@ -99,6 +99,7 @@
     <label for="jloc">Lokasi</label><input id="jloc">
     <label class="chk"><input type="checkbox" id="jact">Jadwal aktif (sesi dibuat otomatis)</label>
     <p id="jhint" style="font-size:.85rem;color:var(--mute)" hidden>Sesi mendatang yang belum pernah kamu ubah manual akan dibuat ulang sesuai jadwal ini.</p>
+    <p style="font-size:.85rem;color:var(--mute)">Sesi dibatasi kuota paket siswa tiap bulan (Reguler 4x, Promo 8x). Idealnya Reguler 1 jadwal per minggu, Promo 2 jadwal per minggu.</p>
     <p id="jerr" class="err" role="alert"></p>
     <div class="act"><button type="button" id="jcancel">Batal</button><button class="pri">Simpan</button></div>
   </form>

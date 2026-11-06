@@ -13,21 +13,27 @@ async function loadPayments() {
   setupMonth();
   $('blist').innerHTML = '<p class="msg">Memuat…</p>';
   const m = bMonth();
-  const [s, p] = await Promise.all([
-    sb.from('students').select('id,name,is_active,created_at,student_fees(monthly_fee)').order('name'),
-    sb.from('payments').select('student_id,amount').eq('month', m)]);
-  if (s.error || p.error) { $('blist').innerHTML = `<p class="msg err">Gagal memuat: ${esc((s.error || p.error).message)}</p>`; return; }
+  const [y, mo] = $('bmonth').value.split('-').map(Number), last = ymd(new Date(y, mo, 0)), today = ymd(new Date());
+  const [s, p, q] = await Promise.all([
+    sb.from('students').select('id,name,is_active,created_at,student_fees(monthly_fee,monthly_quota)').order('name'),
+    sb.from('payments').select('student_id,amount').eq('month', m),
+    sb.from('sessions').select('student_id,session_date,status').gte('session_date', m).lte('session_date', last)]);
+  const er = s.error || p.error || q.error;
+  if (er) { $('blist').innerHTML = `<p class="msg err">Gagal memuat: ${esc(er.message)}</p>`; return; }
   const paid = {};
   p.data.forEach(x => paid[x.student_id] = (paid[x.student_id] || 0) + Number(x.amount));
   // Tampilkan siswa aktif yang sudah terdaftar pada bulan itu, atau siapa pun yang punya pembayaran bulan itu.
-  bills = s.data.map(x => ({ student_id: x.id, name: x.name, fee: Number([].concat(x.student_fees || [])[0]?.monthly_fee ?? 0),
+  // Sesi selesai = tanggal sudah lewat dan tidak batal
+  const done = {};
+  q.data.forEach(x => { if (x.status !== 'batal' && x.session_date < today) done[x.student_id] = (done[x.student_id] || 0) + 1; });
+  bills = s.data.map(x => ({ student_id: x.id, name: x.name, done: done[x.id] || 0, quota: [].concat(x.student_fees || [])[0]?.monthly_quota ?? 4, fee: Number([].concat(x.student_fees || [])[0]?.monthly_fee ?? 0),
       paid: paid[x.id] || 0, show: x.is_active && x.created_at.slice(0, 7) + '-01' <= m }))
     .filter(b => b.paid > 0 || b.show);
   if (!bills.length) { $('bsum').innerHTML = ''; $('blist').innerHTML = '<p class="msg">Tidak ada siswa pada bulan ini.</p>'; return; }
   const n = bills.filter(b => b.paid > 0).length;
   $('bsum').innerHTML = `<span>Terbayar<b>${rp.format(bills.reduce((a, b) => a + b.paid, 0))}</b></span><span>Sudah bayar<b>${n} dari ${bills.length} siswa</b></span>`;
   $('blist').innerHTML = bills.map((b, i) => `<div class="bw"><button class="row srow" data-i="${i}">
-      <span><span class="n">${esc(b.name)}</span><span class="s">Biaya ${rp.format(b.fee)}</span></span>
+      <span><span class="n">${esc(b.name)}</span><span class="s">Biaya ${rp.format(b.fee)}</span><span class="s">${b.done}/${b.quota} sesi</span></span>
       <span class="t">${b.paid > 0 ? rp.format(b.paid) : ''}</span>
       <span class="tag ${b.paid > 0 ? 'selesai' : 'pindah'}">${b.paid > 0 ? 'Sudah bayar' : 'Belum bayar'}</span></button>
       ${b.paid === 0 && b.fee > 0 ? `<button class="pri lun" data-i="${i}">Bayar penuh</button>` : ''}</div>`).join('');
