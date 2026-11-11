@@ -45,8 +45,11 @@
     <div id="blist"></div>
    </section>
    <section id="v-laporan" hidden>
-    <div class="bar"><h2 style="margin:0">Laporan pembayaran</h2><button class="pri" id="rcsv">Unduh CSV</button></div>
-    <div id="rsum" class="sumr"></div>
+    <div class="bar"><h2 style="margin:0">Laporan</h2><span style="display:flex;gap:.5rem"><button class="pri" id="rpdf">Unduh PDF</button><button id="rcsv">Unduh CSV</button></span></div>
+    <div class="chips" id="rchips"><button data-p="bulan" aria-pressed="true">Bulan ini</button><button data-p="lalu" aria-pressed="false">Bulan lalu</button><button data-p="3bln" aria-pressed="false">3 bulan</button><button data-p="tahun" aria-pressed="false">Tahun ini</button></div>
+    <div class="two"><div><label for="rfrom">Dari</label><input id="rfrom" type="date"></div><div><label for="rto">Sampai</label><input id="rto" type="date"></div></div>
+    <label for="rsis">Siswa</label><select id="rsis"><option value="">Semua siswa</option></select>
+    <div id="rsum" class="sumr" style="margin-top:1rem"></div>
     <div id="rlist"></div>
    </section>
   </div>
@@ -97,16 +100,15 @@
   <form id="jform">
     <h3 id="jd-title"></h3>
     <label for="jsd">Siswa</label><select id="jsd" required></select>
-    <label for="jreg">Tanggal daftar</label><input id="jreg" type="date" required>
+    <label for="jreg">Tanggal aktif</label><input id="jreg" type="date" required>
+    <p id="jhari" style="font-size:.85rem;color:var(--mute);margin:.3rem 0 0"></p>
     <label for="jsub">Mata pelajaran</label><select id="jsub" required></select>
-    <label for="jday">Hari</label>
-    <select id="jday"><option value="1">Senin</option><option value="2">Selasa</option><option value="3">Rabu</option><option value="4">Kamis</option><option value="5">Jumat</option><option value="6">Sabtu</option><option value="7">Minggu</option></select>
     <div class="two">
       <div><label for="jst">Mulai</label><input id="jst" type="time"></div>
       <div><label for="jen">Selesai</label><input id="jen" type="time"></div>
     </div>
     <label for="jloc">Lokasi Les</label><select id="jloc" required></select>
-    <label class="chk"><input type="checkbox" id="jact">Jadwal aktif (sesi dibuat otomatis)</label>
+    
     <p id="jhint" style="font-size:.85rem;color:var(--mute)" hidden>Sesi mendatang yang belum pernah kamu ubah manual akan dibuat ulang sesuai jadwal ini.</p>
     <p id="jerr" class="err" role="alert"></p>
     <div class="act"><button type="button" id="jcancel">Batal</button><button class="pri">Simpan</button></div>
@@ -128,6 +130,8 @@
 </dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script src="js/config.js"></script>
 <script src="js/core.js"></script>
 <script src="js/sessions.js"></script>

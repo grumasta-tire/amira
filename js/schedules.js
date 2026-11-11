@@ -9,17 +9,24 @@ function fillSel(id, list, cur, ph) {
   $(id).innerHTML = `<option value="">${ph}</option>` + l.map(v => `<option>${esc(v)}</option>`).join('');
   $(id).value = cur || '';
 }
-// Siswa baru di jadwal: tanggal daftar terisi dari jadwal siswa itu yang sudah ada.
-function prefillReg() {
-  if (jCur) return;
-  $('jreg').value = jStuds.find(x => x.id === $('jsd').value)?.registration_date || '';
+// Hari jadwal otomatis mengikuti tanggal aktif (1 = Senin ... 7 = Minggu).
+const dow = d => { const n = new Date(d + 'T00:00:00').getDay(); return n === 0 ? 7 : n; };
+// Siswa berkuota 8x yang hanya punya satu jadwal otomatis dapat hari kedua (3 hari sesudahnya).
+function showHari() {
+  const d = $('jreg').value;
+  if (!d) { $('jhari').textContent = ''; return; }
+  const n = dow(d), sid = $('jsd').value || jCur?.student_id, st = jStuds.find(x => x.id === sid);
+  const q = [].concat(st?.student_fees || [])[0]?.monthly_quota ?? 4;
+  const alone = !jads.some(x => x.student_id === sid && x.id !== jCur?.id && x.is_active);
+  $('jhari').textContent = q >= 8 && alone ? `Berulang tiap hari ${HARI[n - 1]} dan ${HARI[(n + 2) % 7]} (2x seminggu, ${q}x per siklus)` : `Berulang tiap hari ${HARI[n - 1]}`;
 }
-$('jsd').onchange = prefillReg;
+$('jsd').onchange = showHari;
+$('jreg').onchange = showHari;
 
 async function loadSchedules() {
   $('jlist').innerHTML = '<p class="msg">Memuat…</p>';
   const { data, error } = await sb.from('schedules')
-    .select('id,student_id,subject,day_of_week,start_time,end_time,location,is_active,start_date,students(name)')
+    .select('id,student_id,subject,day_of_week,start_time,end_time,location,is_active,start_date,students(name,student_fees(monthly_quota))')
     .order('day_of_week').order('start_time');
   if (error) { $('jlist').innerHTML = `<p class="msg err">Gagal memuat: ${esc(error.message)}</p>`; return; }
   jads = data;
@@ -27,11 +34,13 @@ async function loadSchedules() {
   let html = '', last = 0;
   jads.forEach((j, i) => {
     if (j.day_of_week !== last) { last = j.day_of_week; html += `<h2>${HARI[j.day_of_week - 1]}</h2>`; }
-    const sub = [j.subject, j.location].filter(Boolean).join(', ');
-    html += `<button class="row ${j.is_active ? '' : 'off'}" data-i="${i}">
+    const q = [].concat(j.students?.student_fees || [])[0]?.monthly_quota ?? 4;
+    const d2 = q >= 8 && jads.filter(x => x.student_id === j.student_id && x.is_active).length === 1 ? HARI[(j.day_of_week + 2) % 7] : '';
+    const sub = [j.subject, j.location, d2 && 'juga ' + d2].filter(Boolean).join(', ');
+    html += `<button class="row" data-i="${i}">
       <span class="t">${j.start_time ? j.start_time.slice(0, 5) : '--:--'}</span>
       <span><span class="n">${esc(j.students?.name || '-')}</span><span class="s">${esc(sub)}</span></span>
-      <span class="tag ${j.is_active ? 'selesai' : 'pindah'}">${j.is_active ? 'Aktif' : 'Nonaktif'}</span></button>`;
+      <span class="tag terjadwal">Sejak ${tgl(j.start_date)}</span></button>`;
   });
   $('jlist').innerHTML = html;
 }
@@ -40,20 +49,18 @@ async function openSchedule(j) {
   jCur = j;
   $('jd-title').textContent = j ? 'Ubah jadwal' : 'Tambah jadwal';
   $('jerr').textContent = '';
-  const { data } = await sb.from('students').select('id,name,is_active,registration_date').order('name');
+  const { data } = await sb.from('students').select('id,name,is_active,registration_date,student_fees(monthly_quota)').order('name');
   jStuds = data || [];
   $('jsd').innerHTML = (data || []).filter(s => s.is_active || s.id === j?.student_id)
     .map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
   if (j) $('jsd').value = j.student_id;
   $('jsd').disabled = !!j;
   fillSel('jsub', MAPEL, j?.subject, 'Pilih mata pelajaran');
-  $('jreg').value = j?.start_date || '';
-  prefillReg();
-  $('jday').value = j?.day_of_week || 1;
+  $('jreg').value = j?.start_date || ymd(new Date());
+  showHari();
   $('jst').value = j?.start_time ? j.start_time.slice(0, 5) : '';
   $('jen').value = j?.end_time ? j.end_time.slice(0, 5) : '';
   fillSel('jloc', LOKASI, j?.location, 'Pilih lokasi');
-  $('jact').checked = j ? j.is_active : true;
   $('jhint').hidden = !j;
   $('jdlg').showModal();
 }
@@ -63,8 +70,8 @@ $('jcancel').onclick = () => $('jdlg').close();
 
 $('jform').onsubmit = async e => {
   e.preventDefault();
-  const row = { subject: $('jsub').value, start_date: $('jreg').value, day_of_week: +$('jday').value, start_time: $('jst').value || null,
-                end_time: $('jen').value || null, location: $('jloc').value || null, is_active: $('jact').checked };
+  const row = { subject: $('jsub').value, start_date: $('jreg').value, day_of_week: dow($('jreg').value), start_time: $('jst').value || null,
+                end_time: $('jen').value || null, location: $('jloc').value || null };
   let r;
   if (jCur) r = await sb.from('schedules').update(row).eq('id', jCur.id);
   else r = await sb.from('schedules').insert({ ...row, student_id: $('jsd').value });
