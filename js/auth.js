@@ -8,7 +8,7 @@ async function enter() {
   $('nav-siswa').hidden = $('nav-jadwal').hidden = $('nav-bayar').hidden = $('nav-laporan').hidden = !(p && p.role === 'admin');
   load();
 }
-function leave() { $('app').hidden = true; $('login').hidden = false; $('nav').firstElementChild.click(); }
+function leave() { $('app').hidden = true; $('login').hidden = false; document.querySelector('#nav [data-v="sesi"]').click(); }
 
 $('lf').onsubmit = async e => {
   e.preventDefault();

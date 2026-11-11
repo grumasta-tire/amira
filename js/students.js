@@ -16,6 +16,7 @@ $('nav').onclick = e => {
   if (b.dataset.v === 'jadwal') loadSchedules();
   if (b.dataset.v === 'bayar') loadPayments();
   if (b.dataset.v === 'laporan') loadReport();
+  if (b.dataset.v === 'sesi') load();
 };
 
 async function loadStudents() {

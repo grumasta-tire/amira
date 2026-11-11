@@ -1,13 +1,7 @@
-function range() {
-  const n = new Date(), t = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-  if (filter === 'today') return [t, t];
-  if (filter === 'week') {
-    const m = new Date(t); m.setDate(t.getDate() - ((t.getDay() + 6) % 7));
-    const e = new Date(m); e.setDate(m.getDate() + 6);
-    return [m, e];
-  }
-  return [new Date(t.getFullYear(), t.getMonth(), 1), new Date(t.getFullYear(), t.getMonth() + 1, 0)];
-}
+// Sesi: kalender bulanan. Ketuk tanggal untuk melihat detail sesi hari itu.
+let calMonth = new Date(); calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth(), 1);
+let selDay = ymd(new Date());
+const WD = ['Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab', 'Min'];
 
 // Sesi 'terjadwal' yang tanggalnya sudah lewat dianggap selesai.
 function label(s) {
@@ -16,8 +10,19 @@ function label(s) {
   return s.session_date < ymd(new Date()) ? ['Selesai', 'selesai'] : ['Terjadwal', 'terjadwal'];
 }
 
+// Warna tanggal: batal (merah) > pindah (kuning) > selesai (hijau) / terjadwal (biru)
+function dayClass(list, key) {
+  if (!list) return '';
+  if (list.some(s => s.status === 'batal')) return 'c-batal';
+  if (list.some(s => s.status === 'pindah')) return 'c-pindah';
+  return key < ymd(new Date()) ? 'c-selesai' : 'c-terjadwal';
+}
+
 async function load() {
-  const [a, b] = range();
+  const a = new Date(calMonth.getFullYear(), calMonth.getMonth(), 1), b = new Date(a.getFullYear(), a.getMonth() + 1, 0);
+  $('ctitle').textContent = a.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+  const ym = ymd(a).slice(0, 7), today = ymd(new Date());
+  if (selDay.slice(0, 7) !== ym) selDay = today.slice(0, 7) === ym ? today : ymd(a);
   $('list').innerHTML = '<p class="msg">Memuat…</p>';
   const { data, error } = await sb.from('sessions')
     .select('id,schedule_id,session_date,start_time,end_time,status,notes,students(name),schedules(subject,location)')
@@ -25,25 +30,35 @@ async function load() {
     .order('session_date').order('start_time');
   if (error) { $('list').innerHTML = `<p class="msg err">Gagal memuat: ${esc(error.message)}</p>`; return; }
   rows = data;
-  render();
+  drawCal();
+  showDay(selDay);
 }
 
-function render() {
-  if (!rows.length) { $('list').innerHTML = '<p class="msg">Tidak ada sesi pada rentang ini.</p>'; return; }
-  let html = '', last = '';
+function drawCal() {
+  const y = calMonth.getFullYear(), m = calMonth.getMonth(), n = new Date(y, m + 1, 0).getDate();
+  const by = {};
+  rows.forEach(s => (by[s.session_date] ||= []).push(s));
+  const today = ymd(new Date());
+  let h = WD.map(d => `<div class="wd">${d}</div>`).join('') + '<span></span>'.repeat((new Date(y, m, 1).getDay() + 6) % 7);
+  for (let d = 1; d <= n; d++) {
+    const key = `${y}-${pad(m + 1)}-${pad(d)}`, c = dayClass(by[key], key);
+    h += `<button class="cd ${c ? 'f ' + c : ''} ${key === today ? 'today' : ''} ${key === selDay ? 'sel' : ''}" data-d="${key}">${d}</button>`;
+  }
+  $('cgrid').innerHTML = h;
+}
+
+function showDay(key) {
+  let h = '';
   rows.forEach((s, i) => {
-    if (s.session_date !== last) {
-      last = s.session_date;
-      html += `<h2>${dayFmt.format(new Date(s.session_date + 'T00:00:00'))}</h2>`;
-    }
+    if (s.session_date !== key) return;
     const [txt, cls] = label(s);
     const sub = [s.schedules?.subject, s.schedules?.location].filter(Boolean).join(', ');
-    html += `<button class="row" data-i="${i}">
+    h += `<button class="row" data-i="${i}">
       <span class="t">${s.start_time ? s.start_time.slice(0, 5) : '--:--'}</span>
       <span><span class="n">${esc(s.students?.name || '-')}</span>${sub ? `<span class="s">${esc(sub)}</span>` : ''}</span>
       <span class="tag ${cls}">${txt}</span></button>`;
   });
-  $('list').innerHTML = html;
+  $('list').innerHTML = `<h2>${dayFmt.format(new Date(key + 'T00:00:00'))}</h2>` + (h || '<p class="msg">Tidak ada sesi pada tanggal ini.</p>');
 }
 
 $('list').onclick = e => {
@@ -86,9 +101,11 @@ $('f').onsubmit = async e => {
   load();
 };
 
-$('tabs').onclick = e => {
-  const b = e.target.closest('button'); if (!b) return;
-  filter = b.dataset.f;
-  [...$('tabs').children].forEach(x => x.setAttribute('aria-pressed', x === b));
-  load();
+$('cgrid').onclick = e => {
+  const b = e.target.closest('.cd'); if (!b) return;
+  selDay = b.dataset.d; drawCal(); showDay(selDay);
 };
+const moveMonth = k => { calMonth = new Date(calMonth.getFullYear(), calMonth.getMonth() + k, 1); load(); };
+$('cprev').onclick = () => moveMonth(-1);
+$('cnext').onclick = () => moveMonth(1);
+$('ctoday').onclick = () => { const n = new Date(); calMonth = new Date(n.getFullYear(), n.getMonth(), 1); selDay = ymd(n); load(); };

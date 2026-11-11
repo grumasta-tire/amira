@@ -23,14 +23,12 @@
     <div><b>Jadwal Les</b><small id="who"></small></div>
     <button id="out">Keluar</button>
   </header>
-  <nav style="max-width:688px;margin:1rem auto 0" class="tabs" id="nav"><button data-v="sesi" aria-pressed="true">Sesi</button><button data-v="siswa" id="nav-siswa" aria-pressed="false" hidden>Siswa</button><button data-v="jadwal" id="nav-jadwal" aria-pressed="false" hidden>Jadwal</button><button data-v="bayar" id="nav-bayar" aria-pressed="false" hidden>Bayar</button><button data-v="laporan" id="nav-laporan" aria-pressed="false" hidden>Laporan</button></nav>
+  <nav style="max-width:688px;margin:1rem auto 0" class="tabs" id="nav"><button data-v="siswa" id="nav-siswa" aria-pressed="false" hidden>Siswa</button><button data-v="bayar" id="nav-bayar" aria-pressed="false" hidden>Bayar</button><button data-v="jadwal" id="nav-jadwal" aria-pressed="false" hidden>Jadwal</button><button data-v="laporan" id="nav-laporan" aria-pressed="false" hidden>Laporan</button><button data-v="sesi" aria-pressed="true">Sesi</button></nav>
   <div class="wrap">
    <section id="v-sesi">
-    <div class="tabs" id="tabs">
-      <button data-f="today" aria-pressed="false">Hari ini</button>
-      <button data-f="week" aria-pressed="true">Minggu ini</button>
-      <button data-f="month" aria-pressed="false">Bulan ini</button>
-    </div>
+    <div class="cal-head"><button id="cprev" aria-label="Bulan sebelumnya">&lsaquo;</button><b id="ctitle"></b><button id="cnext" aria-label="Bulan berikutnya">&rsaquo;</button></div>
+    <div class="cal-grid" id="cgrid"></div>
+    <div class="legend"><span class="c-terjadwal">Terjadwal</span><span class="c-selesai">Selesai</span><span class="c-pindah">Pindah</span><span class="c-batal">Batal</span><button type="button" id="ctoday">Hari ini</button></div>
     <div id="list"></div>
    </section>
    <section id="v-siswa" hidden>
