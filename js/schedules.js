@@ -1,6 +1,6 @@
 // Halaman Jadwal (khusus admin): jadwal mingguan berulang per siswa
 const HARI = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'];
-let jads = [], jCur = null;
+let jads = [], jCur = null, jStuds = [];
 const MAPEL = ['Bahasa Inggris I', 'Bahasa Inggris II', 'Bahasa Inggris III', 'Matematika I', 'Matematika II', 'Matematika III', 'Bahasa Arab', 'CaLisTung'];
 const LOKASI = ['Teacher Visit', 'Home Visit'];
 // Isi pilihan; nilai lama yang tidak ada di daftar tetap dipertahankan agar tidak hilang.
@@ -12,7 +12,7 @@ function fillSel(id, list, cur, ph) {
 // Siswa baru di jadwal: tanggal daftar terisi dari jadwal siswa itu yang sudah ada.
 function prefillReg() {
   if (jCur) return;
-  $('jreg').value = jads.filter(x => x.student_id === $('jsd').value).map(x => x.start_date).sort()[0] || '';
+  $('jreg').value = jStuds.find(x => x.id === $('jsd').value)?.registration_date || '';
 }
 $('jsd').onchange = prefillReg;
 
@@ -40,7 +40,8 @@ async function openSchedule(j) {
   jCur = j;
   $('jd-title').textContent = j ? 'Ubah jadwal' : 'Tambah jadwal';
   $('jerr').textContent = '';
-  const { data } = await sb.from('students').select('id,name,is_active').order('name');
+  const { data } = await sb.from('students').select('id,name,is_active,registration_date').order('name');
+  jStuds = data || [];
   $('jsd').innerHTML = (data || []).filter(s => s.is_active || s.id === j?.student_id)
     .map(s => `<option value="${s.id}">${esc(s.name)}</option>`).join('');
   if (j) $('jsd').value = j.student_id;

@@ -1,7 +1,8 @@
 // Halaman Siswa (khusus admin): data siswa + biaya bulanan
 const rp = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 });
 let studs = [], sCur = null;
-const PAKET = { reguler: { label: 'Reguler', quota: 4, fee: 250000 }, promo: { label: 'Promo', quota: 8, fee: 200000 } };
+const PAKET = { reguler1: { label: 'Reguler 1', quota: 4, fee: 200000 }, reguler2: { label: 'Reguler 2', quota: 8, fee: 400000 }, promo1: { label: 'Promo 1', quota: 8, fee: 300000 } };
+const tgl = d => new Date(d + 'T00:00:00').toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
 $('sf').innerHTML = Object.entries(PAKET).map(([k, v]) => `<option value="${k}">${v.label}: ${v.quota}x pertemuan, ${rp.format(v.fee)}</option>`).join('');
 
 $('nav').onclick = e => {
@@ -21,23 +22,26 @@ $('nav').onclick = e => {
 
 async function loadStudents() {
   $('slist').innerHTML = '<p class="msg">Memuat…</p>';
-  const { data, error } = await sb.from('students')
-    .select('id,name,contact,grade,notes,is_active,student_fees(monthly_fee,package)').order('name');
-  if (error) { $('slist').innerHTML = `<p class="msg err">Gagal memuat: ${esc(error.message)}</p>`; return; }
-  studs = data.map(s => { const f = [].concat(s.student_fees || [])[0] || {}; return { ...s, fee: f.monthly_fee ?? '', pkg: f.package || 'reguler' }; });
+  const m = ymd(new Date()).slice(0, 7) + '-01';
+  const [s, p] = await Promise.all([
+    sb.from('students').select('id,name,contact,grade,notes,registration_date,student_fees(monthly_fee,package)').order('name'),
+    sb.from('payments').select('student_id').eq('month', m)]);
+  if (s.error || p.error) { $('slist').innerHTML = `<p class="msg err">Gagal memuat: ${esc((s.error || p.error).message)}</p>`; return; }
+  // Status aktif = sudah ada pembayaran tercatat pada bulan ini
+  const paid = new Set(p.data.map(x => x.student_id));
+  studs = s.data.map(x => { const f = [].concat(x.student_fees || [])[0] || {}; return { ...x, fee: f.monthly_fee ?? '', pkg: f.package, aktif: paid.has(x.id) }; });
   if (!studs.length) { $('slist').innerHTML = '<p class="msg">Belum ada siswa. Klik Tambah siswa.</p>'; return; }
-  $('slist').innerHTML = studs.map((s, i) => `<button class="row srow ${s.is_active ? '' : 'off'}" data-i="${i}">
-    <span><span class="n">${esc(s.name)}</span><span class="s">${esc([PAKET[s.pkg].label, s.grade, s.contact].filter(Boolean).join(', '))}</span></span>
-    <span class="t">${s.fee === '' ? '-' : rp.format(s.fee)}</span>
-    <span class="tag ${s.is_active ? 'selesai' : 'pindah'}">${s.is_active ? 'Aktif' : 'Nonaktif'}</span></button>`).join('');
+  $('slist').innerHTML = studs.map((x, i) => `<button class="row srow" data-i="${i}">
+    <span><span class="n">${esc(x.name)}</span><span class="s">${esc([PAKET[x.pkg]?.label || x.pkg, x.grade, x.contact].filter(Boolean).join(', '))}</span><span class="s">Daftar ${tgl(x.registration_date)}</span></span>
+    <span class="t">${x.fee === '' ? '-' : rp.format(x.fee)}</span>
+    <span class="tag ${x.aktif ? 'selesai' : 'pindah'}">${x.aktif ? 'Aktif' : 'Belum aktif'}</span></button>`).join('');
 }
 
 function openStudent(s) {
   sCur = s;
   $('sd-title').textContent = s ? 'Ubah siswa' : 'Tambah siswa';
   $('sn').value = s?.name || ''; $('sc').value = s?.contact || ''; $('sg').value = s?.grade || '';
-  $('sf').value = s?.pkg || 'reguler'; $('sx').value = s?.notes || '';
-  $('sa').checked = s ? s.is_active : true;
+  $('sf').value = PAKET[s?.pkg] ? s.pkg : 'reguler1'; $('sr').value = s?.registration_date || ''; $('sx').value = s?.notes || '';
   $('serr').textContent = '';
   $('sdlg').showModal();
   loadDel(s);
@@ -48,12 +52,19 @@ $('scancel').onclick = () => $('sdlg').close();
 
 $('sform').onsubmit = async e => {
   e.preventDefault();
+  const k = PAKET[$('sf').value], reg = $('sr').value;
   const row = { name: $('sn').value.trim(), contact: $('sc').value.trim() || null, grade: $('sg').value.trim() || null,
-                notes: $('sx').value.trim() || null, is_active: $('sa').checked };
+                notes: $('sx').value.trim() || null, registration_date: reg };
   let r, id = sCur?.id;
   if (sCur) r = await sb.from('students').update(row).eq('id', id);
   else { r = await sb.from('students').insert(row).select('id').single(); id = r.data?.id; }
-  if (!r.error) { const k = PAKET[$('sf').value]; r = await sb.from('student_fees').upsert({ student_id: id, package: $('sf').value, monthly_fee: k.fee, monthly_quota: k.quota }); }
+  if (!r.error) r = await sb.from('student_fees').upsert({ student_id: id, package: $('sf').value, monthly_fee: k.fee, monthly_quota: k.quota });
+  // Tanggal pendaftaran berubah: samakan tanggal mulai jadwal siswa ini, lalu buat ulang sesi mendatang yang belum diubah manual.
+  if (!r.error && sCur && sCur.registration_date !== reg) {
+    r = await sb.from('schedules').update({ start_date: reg }).eq('student_id', id);
+    if (!r.error) r = await sb.from('sessions').delete().eq('student_id', id)
+      .eq('is_modified', false).eq('status', 'terjadwal').gte('session_date', ymd(new Date()));
+  }
   if (!r.error) r = await sb.rpc('generate_sessions', { days_ahead: 30 });
   if (r.error) { $('serr').textContent = 'Gagal menyimpan: ' + r.error.message; return; }
   $('sdlg').close();
