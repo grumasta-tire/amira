@@ -40,8 +40,7 @@
     <div id="jlist"></div>
    </section>
    <section id="v-bayar" hidden>
-    <div class="bar"><h2 style="margin:0">Pembayaran</h2><input id="bmonth" type="month" style="width:auto"></div>
-    <div id="bsum" class="sumr"></div>
+    <div class="bar"><h2 style="margin:0">Pembayaran</h2></div>
     <div id="blist"></div>
    </section>
    <section id="v-laporan" hidden>
@@ -100,6 +99,7 @@
   <form id="jform">
     <h3 id="jd-title"></h3>
     <label for="jsd">Siswa</label><select id="jsd" required></select>
+    <p id="jstat" style="font-size:.9rem;font-weight:600;margin:.4rem 0 0"></p>
     <label for="jreg">Tanggal aktif</label><input id="jreg" type="date" required>
     <p id="jhari" style="font-size:.85rem;color:var(--mute);margin:.3rem 0 0"></p>
     <label for="jsub">Mata pelajaran</label><select id="jsub" required></select>
@@ -108,10 +108,8 @@
       <div><label for="jen">Selesai</label><input id="jen" type="time"></div>
     </div>
     <label for="jloc">Lokasi Les</label><select id="jloc" required></select>
-    
-    <p id="jhint" style="font-size:.85rem;color:var(--mute)" hidden>Sesi mendatang yang belum pernah kamu ubah manual akan dibuat ulang sesuai jadwal ini.</p>
     <p id="jerr" class="err" role="alert"></p>
-    <div class="act"><button type="button" id="jcancel">Batal</button><button class="pri">Simpan</button></div>
+    <div class="act"><button type="button" class="danger" id="jdel" style="margin-right:auto" hidden>Hapus jadwal</button><button type="button" id="jcancel">Batal</button><button class="pri" id="jsave">Simpan</button></div>
   </form>
 </dialog>
 
@@ -119,9 +117,8 @@
   <form id="bform">
     <h3 id="bd-title"></h3>
     <p id="binfo" style="margin:0;color:var(--mute)"></p>
-    <p class="note">Catatan: formulir ini khusus pembayaran sebagian (cicilan). Untuk bayar penuh, gunakan tombol Bayar penuh di daftar.</p>
-    <label for="bamt">Jumlah dibayar (Rp)</label><input id="bamt" type="number" min="1" step="1000" inputmode="numeric" required>
     <label for="bdate">Tanggal bayar</label><input id="bdate" type="date" required>
+    <div id="bstartw"><label for="bstart">Tanggal mulai paket</label><input id="bstart" type="date"><p id="bstarth" style="font-size:.85rem;color:var(--mute);margin:.3rem 0 0"></p></div>
     <label for="bnote">Catatan</label><input id="bnote">
     <p id="berr" class="err" role="alert"></p>
     <div class="act"><button type="button" id="bcancel">Tutup</button><button class="pri">Catat pembayaran</button></div>
